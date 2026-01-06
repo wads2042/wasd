@@ -1,37 +1,48 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
+import random
 
-# 1. 페이지 설정
-st.set_page_config(page_title="나의 첫 스트림릿 사이트", layout="wide")
+# 페이지 설정
+st.set_page_config(page_title="랜덤 자리 배치기", page_icon="🪑")
 
-# 2. 사이드바 구성
-with st.sidebar:
-    st.header("설정")
-    user_name = st.text_input("이름을 입력하세요", "방문자")
-    selected_page = st.selectbox("페이지 선택", ["홈", "데이터 분석", "정보"])
+st.title("🪑 랜덤 자리 배치 시스템")
+st.write("명단을 입력하고 버튼을 누르면 무작위로 자리를 배치합니다.")
 
-# 3. 메인 페이지 로직
-if selected_page == "홈":
-    st.title(f"👋 반갑습니다, {user_name}님!")
-    st.write("이 사이트는 스트림릿과 깃허브를 통해 배포되었습니다.")
+# 1. 입력 섹션
+with st.container():
+    col1, col2 = st.columns(2)
     
-    # 간단한 그래프 예시
-    chart_data = pd.DataFrame(np.random.randn(20, 3), columns=['A', 'B', 'C'])
-    st.line_chart(chart_data)
-
-elif selected_page == "데이터 분석":
-    st.title("📊 데이터 분석 페이지")
-    st.info("여기에 분석 결과를 시각화할 수 있습니다.")
+    with col1:
+        # 이름 입력창 (줄바꿈으로 구분)
+        input_names = st.text_area("학생/참석자 명단을 입력하세요 (한 줄에 한 명씩)", 
+                                  height=200, 
+                                  placeholder="홍길동\n김철수\n이영희")
     
-    # 데이터 프레임 출력
-    df = pd.DataFrame({
-        '과일': ['사과', '바나나', '딸기', '포도'],
-        '가격': [1000, 500, 2500, 3000],
-        '재고': [10, 20, 5, 12]
-    })
-    st.table(df)
+    with col2:
+        # 가로 행 수 설정
+        columns_count = st.number_input("한 줄에 몇 명씩 앉나요?", min_value=1, max_value=10, value=3)
+        shuffle_button = st.button("자리 배치 시작!", type="primary")
 
-elif selected_page == "정보":
-    st.title("ℹ️ 정보")
-    st.write("이 앱은 Streamlit 라이브러리를 사용해 제작되었습니다.")
+# 2. 로직 처리 및 출력
+if shuffle_button:
+    if not input_names.strip():
+        st.warning("먼저 명단을 입력해주세요!")
+    else:
+        # 이름 리스트 만들기
+        name_list = [name.strip() for name in input_names.split('\n') if name.strip()]
+        
+        # 무작위 섞기
+        random.shuffle(name_list)
+        
+        st.divider()
+        st.subheader("📍 배치 결과")
+        
+        # 그리드(Grid) 레이아웃으로 출력
+        rows = [name_list[i:i + columns_count] for i in range(0, len(name_list), columns_count)]
+        
+        for row in rows:
+            cols = st.columns(columns_count)
+            for i, name in enumerate(row):
+                with cols[i]:
+                    st.success(f"**{name}**")
+
+st.sidebar.info("Tip: 깃허브에 업데이트하면 자동으로 반영됩니다.")
